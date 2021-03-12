@@ -8,7 +8,7 @@ port = 22
 username = "student"
 password = "caesar"
 buffsize=4096
-serverTime = 1
+serverTime = 0.1
 
 ssh = SSHClient()
 ssh.load_system_host_keys()
@@ -26,23 +26,32 @@ print (codecs.decode(chan.recv(buffsize),  'UTF-8'))
 
 chan.send("Codagami\n")
 time.sleep(serverTime)
+while not chan.recv_ready():
+        print("--------------------------------- not ready")
 print (codecs.decode(chan.recv(buffsize),  'UTF-8'))
 
 chan.send("coda@cdr3#gami\n")
 time.sleep(serverTime)
+while not chan.recv_ready():
+        print("--------------------------------- not ready")
 print (codecs.decode(chan.recv(buffsize),  'UTF-8'))
 
 chan.send("4\n")
 time.sleep(serverTime)
+while not chan.recv_ready():
+        print("--------------------------------- not ready")
 print (codecs.decode(chan.recv(buffsize),  'UTF-8'))
 
 chan.send("read\n")
 time.sleep(serverTime)
+while not chan.recv_ready():
+        print("--------------------------------- not ready")
 print (codecs.decode(chan.recv(buffsize),  'UTF-8'))
 
 outputFile = open("outputs.txt","w")
 inputFile = open("input_plain_text.txt","r")
 i = 0
+missed =set()
 for x in inputFile:
     print ("iteration number = ", i)
     i = i + 1
@@ -50,19 +59,31 @@ for x in inputFile:
 
     chan.send(x)
     time.sleep(serverTime)
+    f = 1
     while not chan.recv_ready():
-        print("--------------------------------- not ready")
+        if f :
+            f = 0
+            missed.add(i)
+            print("--------------------------------- not ready")
     response = codecs.decode(chan.recv(buffsize),  'UTF-8')
-    print("output = ", response)
+    print(response)
     outputFile.write(response)
     
     chan.send("c")
     time.sleep(serverTime)
 
+    f = 1
     while not chan.recv_ready():
-        print("--------------------------------- not ready")
+        if f :
+            f = 0
+            missed.add(i)
+            print("--------------------------------- not ready")
     response = codecs.decode(chan.recv(buffsize),  'UTF-8')
     print(response)
+    outputFile.write(response)
+
+print(missed)
+print("list size = ", len(missed))
 print("total pairs = ", i)
 inputFile.close()
 outputFile.close()

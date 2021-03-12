@@ -33,7 +33,7 @@ def IP_inv(s):
 
 input_list = []
 
-for i in range(128):
+for i in range(256):
     R = generate_32_bit_string()
     L = generate_32_bit_string()
     L1 = generate_32_bit_string()
