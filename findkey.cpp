@@ -1,4 +1,5 @@
 #include<iostream>
+#include<fstream>
 
 #define BYTE unsigned char
 
@@ -84,6 +85,18 @@ INT RFP[] = {
 };
 
 int main(){
+    ifstream fin;
+    fin.open("final_outputs_1.txt");
+    string line;
+    string cipherPairs[320][2];
+    if(!fin) return 0;
+    for(int i = 0 ; i < 320 ; i++){
+        getline(fin, line);
+        cipherPairs[i][0] = line;
+        getline(fin, line);
+        cipherPairs[i][1] = line;
+    }
+    fin.close();
 
     int keyf[8][64];
 
@@ -93,156 +106,193 @@ int main(){
         }
     }
 
-    char out1[17]; // Ciphertext
-    char out2[17]; // 2nd ciphertext
-    char o1[64], o2[64], o[64], oo1[64], oo2[64]; // Binary of ciphertext
-
-    // Function to convert the Ciphertext to binary
-    for(int i = 0; i < 16; i++){
-        INT a = (unsigned int)(out1[i] - 'f');
-        INT b = (unsigned int)(out2[i] - 'f');
-        for(int j = i*4; j < i*4 + 4; i++){
-            oo1[j] = '0' + ((a >> (3-(j-(i*4)))) & 01);
-            oo2[j] = '0' + ((b >> (3-(j-(i*4)))) & 01);
+    for(int h = 0; h < 320; h++){
+        char out1[17]; // Ciphertext
+        char out2[17]; // 2nd ciphertext
+        for(int i = 0; i < 16; i++){
+            out1[i] = cipherPairs[h][0][i];
+            out2[i] = cipherPairs[h][1][i];
         }
-    }
+        char o1[64], o2[64], o[64], oo1[64], oo2[64]; // Binary of ciphertext
 
-    // Function to apply inverse permutation RIP to ciphertext
-    for(int i = 0; i < 64; i++){
-        o1[RFP[i]-1] = oo1[i];
-        o2[RFP[i]-1] = oo2[i];
-    }
-
-    // Function to XOR o1 and o2 and store in o
-    for(int i = 0; i < 64; i++){
-        if(o1[i] == o2[i]){
-            o[i] = '0';
+        // Function to convert the Ciphertext to binary
+        for(int i = 0; i < 16; i++){
+            INT a = (unsigned int)(out1[i] - 'f');
+            INT b = (unsigned int)(out2[i] - 'f');
+            for(int j = i*4; j < i*4 + 4; i++){
+                oo1[j] = '0' + ((a >> (3-(j-(i*4)))) & 01);
+                oo2[j] = '0' + ((b >> (3-(j-(i*4)))) & 01);
+            }
         }
-        else{
-            o[i] = '1';
+
+        // Function to apply inverse permutation RIP to ciphertext
+        for(int i = 0; i < 64; i++){
+            o1[RFP[i]-1] = oo1[i];
+            o2[RFP[i]-1] = oo2[i];
         }
-    }
 
-    char F[33];
-    
-    char C[33] = "00000100000000000000000000000000";
-    for(int i = 0; i < 32; i++){
-        if(C[i] == o[i+32]){ // Is there a final swap in fiestel?
-            F[i] = '0';
-        }
-        else{
-            F[i] = '1';
-        }
-    }
-
-    // Inverse Permute F to get output of S box in Round 6
-    char FP[33];
-    for(int i = 0; i < 32; i++){
-        FP[i] = F[INV_P[i]-1];
-    }
-
-    // Expand right half of 5th round
-    char Exp1[49], Exp2[49], Exp[49];
-	for(int j = 0; j < 48; j++){
-	    Exp1[j] = o1[E[j]];
-        Exp2[j] = o2[E[j]];
-        Exp[j] = o[E[j]];
-	}
-
-    // Exp[i] XOR K[i] = input to S box which outputs FP
-    // Contruct set X_i
-
-    // Make a set to keep counter of key validities, blocks S2, 5, 6, 7, 8
-
-
-    register INT t, k;
-    BYTE preS1[48], preS2[48];
-
-    /* Map 8 6-bit blocks into 8 4-bit bolcks using S-boxes */
-	for(int j = 0; j < 8; j++){
-        if((j == 1) || (j == 3) || (j == 4)) continue;
-        INT x = 0; // XOR of input to Sj
-        INT x1 = 0, x2 = 0;
-        INT s_out = 0;
-        for(int i = j*6; i < j*6 + 6; i++){
-            if(Exp[i] == '1'){
-                x = (x << 1)+1;
+        // Function to XOR o1 and o2 and store in o
+        for(int i = 0; i < 64; i++){
+            if(o1[i] == o2[i]){
+                o[i] = '0';
             }
             else{
-                x = (x << 1)+0;
-            }
-            if(Exp1[i] == '1'){
-                x1 = (x1 << 1)+1;
-            }
-            else{
-                x1 = (x1 << 1)+0;
-            }
-            if(Exp2[i] == '1'){
-                x2 = (x2 << 1)+1;
-            }
-            else{
-                x2 = (x2 << 1)+0;
+                o[i] = '1';
             }
         }
-        for(int i = j*4; i < j*4 + 4; i++){
-            if(FP[i] == '1'){
-                s_out = (s_out << 1)+1;
+
+        char F[33];
+        
+        char C[33] = "00000100000000000000000000000000";
+        for(int i = 0; i < 32; i++){
+            if(C[i] == o[i+32]){ // Is there a final swap in fiestel?
+                F[i] = '0';
             }
             else{
-                s_out = (s_out << 1)+0;
+                F[i] = '1';
             }
         }
-	    for(INT i = 0; i < 64; i++){
-            INT y = x^i; // i is Beta, y is Beta'
-            for(int a = 0; a < 6; a++){
-                preS1[a+k] = (i >> (5-a)) & 01;
-                preS2[a+k] = (y >> (5-a)) & 01;
+
+        // Inverse Permute F to get output of S box in Round 6
+        char FP[33];
+        for(int i = 0; i < 32; i++){
+            FP[i] = F[INV_P[i]-1];
+        }
+
+        // Expand right half of 5th round
+        char Exp1[49], Exp2[49], Exp[49];
+        for(int j = 0; j < 48; j++){
+            Exp1[j] = o1[E[j]];
+            Exp2[j] = o2[E[j]];
+            Exp[j] = o[E[j]];
+        }
+
+        // Exp[i] XOR K[i] = input to S box which outputs FP
+        // Contruct set X_i
+
+        // Make a set to keep counter of key validities, blocks S2, 5, 6, 7, 8
+
+        printf("here\n");
+
+        register INT t, k;
+        BYTE preS1[48], preS2[48];
+
+        /* Map 8 6-bit blocks into 8 4-bit bolcks using S-boxes */
+        for(int j = 0; j < 8; j++){
+            if((j == 1) || (j == 3) || (j == 4)) continue;
+            INT x = 0; // XOR of input to Sj
+            INT x1 = 0, x2 = 0;
+            INT s_out = 0;
+            for(int i = j*6; i < j*6 + 6; i++){
+                if(Exp[i] == '1'){
+                    x = (x << 1)+1;
+                }
+                else{
+                    x = (x << 1)+0;
+                }
+                if(Exp1[i] == '1'){
+                    x1 = (x1 << 1)+1;
+                }
+                else{
+                    x1 = (x1 << 1)+0;
+                }
+                if(Exp2[i] == '1'){
+                    x2 = (x2 << 1)+1;
+                }
+                else{
+                    x2 = (x2 << 1)+0;
+                }
+            }
+            for(int i = j*4; i < j*4 + 4; i++){
+                if(FP[i] == '1'){
+                    s_out = (s_out << 1)+1;
+                }
+                else{
+                    s_out = (s_out << 1)+0;
+                }
             }
             
-            BYTE f1[4];
-            k= 6*j;
-            t = preS1[k];
-            t = (t<<1) | preS1[k+5];
-            t = (t<<1) | preS1[k+1];
-            t = (t<<1) | preS1[k+2];
-            t = (t<<1) | preS1[k+3];
-            t = (t<<1) | preS1[k+4];
-            /* fetch t th entry fron jth sbox */
-            t = S[j][t];
-            /* generate 4-bit block from s-box entry */
-            k= 4*j;
-            f1[0] = (t>>3)&1;
-            f1[1] = (t >> 2) & 1;
-            f1[2] = (t >> 1) & 1;
-            f1[3] = t &1;
+            // printf("here 2\n");
 
-            BYTE f2[4];
-            k= 6*j;
-            t = preS2[k];
-            t = (t<<1) | preS2[k+5];
-            t = (t<<1) | preS2[k+1];
-            t = (t<<1) | preS2[k+2];
-            t = (t<<1) | preS2[k+3];
-            t = (t<<1) | preS2[k+4];
-            /* fetch t th entry fron jth sbox */
-            t = S[j][t];
-            /* generate 4-bit block from s-box entry */
-            k= 4*j;
-            f2[0] = (t>>3)&1;
-            f2[1] = (t >> 2) & 1;
-            f2[2] = (t >> 1) & 1;
-            f2[3] = t &1;
+            for(INT i = 0; i < 64; i++){
+                k= 6*j;
+                INT y = x^i; // i is Beta, y is Beta'
+                for(int a = 0; a < 6; a++){
+                    preS1[a+k] = (i >> (5-a)) & 01;
+                    preS2[a+k] = (y >> (5-a)) & 01;
+                }
 
-            INT w = 0;
-            for(int i = 0; i < 4; i++){
-                w = w + ((f1[i]^f2[i]) << (3-i));
+                // printf("here 4\n");
+                
+                BYTE f1[4];
+                
+                t = preS1[k];
+                t = (t<<1) | preS1[k+5];
+                t = (t<<1) | preS1[k+1];
+                t = (t<<1) | preS1[k+2];
+                t = (t<<1) | preS1[k+3];
+                t = (t<<1) | preS1[k+4];
+                /* fetch t th entry fron jth sbox */
+                t = S[j][t];
+                /* generate 4-bit block from s-box entry */
+                k= 4*j;
+                f1[0] = (t>>3)&1;
+                f1[1] = (t >> 2) & 1;
+                f1[2] = (t >> 1) & 1;
+                f1[3] = t &1;
+                
+                // printf("here 3\n");
+
+                BYTE f2[4];
+                k= 6*j;
+                t = preS2[k];
+                t = (t<<1) | preS2[k+5];
+                t = (t<<1) | preS2[k+1];
+                t = (t<<1) | preS2[k+2];
+                t = (t<<1) | preS2[k+3];
+                t = (t<<1) | preS2[k+4];
+                /* fetch t th entry fron jth sbox */
+                t = S[j][t];
+                /* generate 4-bit block from s-box entry */
+                k= 4*j;
+                f2[0] = (t>>3)&1;
+                f2[1] = (t >> 2) & 1;
+                f2[2] = (t >> 1) & 1;
+                f2[3] = t &1;
+
+                INT w = 0;
+                for(int i = 0; i < 4; i++){
+                    w = w + ((f1[i]^f2[i]) << (3-i));
+                }
+                if(s_out == w){
+                    // This valid pair
+                    keyf[j][x^x1]++;
+                }
             }
-            if(s_out == w){
-                // This valid pair
-                keyf[j][x^x1]++;
+            /* Compute index t into jth s box */
+        }
+    }
+
+    // 2, 5, 6, 7, 8
+    INT k2, k5, k6, k7, k8;
+
+    for(int i = 0; i < 8; i++){
+        if((i == 1) || (i == 3) || (i == 4)) continue;
+        INT k_max = 0;
+        int num = 0;
+        for(int j = 0; j < 64; j++){
+            if(keyf[i][j] > num){
+                num = keyf[i][j];
+                k_max = (unsigned int)j;
             }
         }
-        /* Compute index t into jth s box */
-	}
+        if(i == 2) k2 = k_max;
+        if(i == 5) k5 = k_max;
+        if(i == 6) k6 = k_max;
+        if(i == 7) k7 = k_max;
+        if(i == 8) k8 = k_max;
+    }
+
+    printf("k2 = %u, k5 = %u, k6 = %u, k7 = %u, k8 = %u\n", k2, k5, k6, k7, k8);
 
 }
