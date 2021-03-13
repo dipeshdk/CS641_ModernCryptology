@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 
 #define BYTE unsigned char
 #define INT unsigned int
@@ -84,6 +85,25 @@ INT PC2[] = {
   46, 42, 50, 36, 29, 32
 };
 
+
+
+
+/********************************************************************
+ *UNPACK8()  Unpack 8 bytes at 8bits/byte into 64 bytes at 1 bit/byte
+ ********************************************************************/
+
+void unpack8(packed, binary)
+     BYTE *packed;
+     BYTE *binary;
+{
+  register INT i, j, k;
+  
+  for (i=0; i<8; i++) {
+    k = *packed++;
+    for (j=0; j<8;j++) *binary++ = (k>>(7-j)) &01 ;
+  }
+}
+
 /* Key Scedule of 16 498-bit subkey generated from 64-bit key */
 
 BYTE KS[16][48];
@@ -131,30 +151,11 @@ void set_the_key(sw1, pkey, r)
   return;
   
 }
-
-
-/********************************************************************
- *UNPACK8()  Unpack 8 bytes at 8bits/byte into 64 bytes at 1 bit/byte
- ********************************************************************/
-
-unpack8(packed, binary)
-     BYTE *packed;
-     BYTE *binary;
-{
-  register INT i, j, k;
-  
-  for (i=0; i<8; i++) {
-    k = *packed++;
-    for (j=0; j<8;j++) *binary++ = (k>>(7-j)) &01 ;
-  }
-}
-
-
 /********************************************************************
  *PACK8() Pack 64 bytes at 1 bits/byte into 8 bytes at 8 bit/byte
  ********************************************************************/
 
-pack8(packed, binary)
+void pack8(packed, binary)
      BYTE *packed;
      BYTE *binary;
 {
@@ -344,8 +345,43 @@ void des(in,out,r,flag)
 
 int main(){
   char* in, *out;
-  in = (char*)malloc(16*sizeof(char));
-  out = (char*)malloc(16*sizeof(char));
-  des(in, out, 4, 'Y');
+  in = (char*)malloc(65*sizeof(char));
+  out = (char*)malloc(65*sizeof(char));
+
+  char key[8];
+  for(int i = 0; i < 7; i++){
+    key[i] = '\0';
+  }
+  key[7] = '\0';
+  set_the_key(0, key, 6);
+
+  in[0] = 96;
+  in[1] = 0;
+  in[2] = 0;
+  in[3] = 0;
+  in[4] = 0;
+  in[5] = 0;
+  in[6] = 0;
+  in[7] = 0;
+  in[8] = 0;
+  printf("in = %s\n", in);
+  for(int i = 0; i < 8; i++){
+    printf("%u\n", (unsigned char)in[i]);
+  }
+  des(in, out, 3, 'N');
+  printf("out = %s\n", out);
+  for(int i = 0; i < 8; i++){
+    printf("%u\n", (unsigned char)out[i]);
+  }
+  in[0] = 0;
+  printf("in = %s\n", in);
+  for(int i = 0; i < 8; i++){
+    printf("%u\n", (unsigned char)in[i]);
+  }
+  des(in, out, 3, 'N');
+  printf("out = %s\n", out);
+  for(int i = 0; i < 8; i++){
+    printf("%u\n", (unsigned char)out[i]);
+  }
   return 0;
 }
