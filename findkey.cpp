@@ -72,6 +72,17 @@ INT S[8][64]=
   7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8, 
   2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11 };
 
+INT RFP[] = {
+  8,40,16,48,24,56,32,64,
+  7, 39,15,47,23,55,31,63,
+  6,38,14,46,22,54,30,62,
+  5,37,13,45, 21,53,29,61,
+  4,36,12,44,20,52,28,60,
+  3, 35, 11,43,19,51,27,59,
+  2, 34, 10, 42,18, 50,26,58,
+  1,33,9,41, 17, 49, 25,57,
+};
+
 int main(){
 
     int keyf[8][64];
@@ -84,15 +95,32 @@ int main(){
 
     char out1[17]; // Ciphertext
     char out2[17]; // 2nd ciphertext
-    char o1[64], o2[64], o[64]; // Binary of ciphertext
+    char o1[64], o2[64], o[64], oo1[64], oo2[64]; // Binary of ciphertext
 
     // Function to convert the Ciphertext to binary
+    for(int i = 0; i < 16; i++){
+        INT a = (unsigned int)(out1[i] - 'f');
+        INT b = (unsigned int)(out2[i] - 'f');
+        for(int j = i*4; j < i*4 + 4; i++){
+            oo1[j] = '0' + ((a >> (3-(j-(i*4)))) & 01);
+            oo2[j] = '0' + ((b >> (3-(j-(i*4)))) & 01);
+        }
+    }
 
     // Function to apply inverse permutation RIP to ciphertext
+    for(int i = 0; i < 64; i++){
+        o1[RFP[i]-1] = oo1[i];
+        o2[RFP[i]-1] = oo2[i];
+    }
 
     // Function to XOR o1 and o2 and store in o
     for(int i = 0; i < 64; i++){
-        
+        if(o1[i] == o2[i]){
+            o[i] = '0';
+        }
+        else{
+            o[i] = '1';
+        }
     }
 
     char F[33];
