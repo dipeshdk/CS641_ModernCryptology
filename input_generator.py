@@ -73,7 +73,7 @@ input_list2 = []
 psi1 = 0x4008000004000000
 psi2 = 0x0020000800000400
 
-for i in range(160):
+for i in range(5000):
     s = generate_64_bit_string()
     
     p1 = int(s,2)
@@ -106,7 +106,7 @@ for i in range(160):
 #     for i in input_list:
 #         f.write(i + "\n")
 
-send_to_file(input_list1, "input_plain_text_1.txt")
-send_to_file(input_list2, "input_plain_text_2.txt")
+send_to_file(input_list1, "input_plain_text_9.txt")
+send_to_file(input_list2, "input_plain_text_10.txt")
 
 print("input_generator.py work done")
