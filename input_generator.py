@@ -67,46 +67,62 @@ def send_to_file(input_list, filename):
             f.write(i + "\n")
 
 
-input_list1 = []
-input_list2 = []
-
-psi1 = 0x4008000004000000
-psi2 = 0x0020000800000400
-
-for i in range(5000):
-    s = generate_64_bit_string()
+def fourBitGenerator():
+    input_list1 = []
+    psi1 = 0x6000000000000000
     
-    p1 = int(s,2)
-    p2 = p1 ^ psi1
-    p3 = p1 ^ psi2
-    p4 = p2 ^ psi2
-    
-    b1  = '{:064b}'.format(p1)
-    b2  = '{:064b}'.format(p2)
-    b3  = '{:064b}'.format(p3)
-    b4  = '{:064b}'.format(p4)
+    for i in range(150):
+        s = generate_64_bit_string()
+        
+        p1 = int(s,2)
+        p2 = p1 ^ psi1
+                
+        b1  = '{:064b}'.format(p1)
+        b2  = '{:064b}'.format(p2)
+        
+        input_list1.append(b1)
+        input_list1.append(b2)
 
-    # for characteristic equation 1
-    input_list1.append(b1)
-    input_list1.append(b2)
-    
-    input_list1.append(b3)
-    input_list1.append(b4)
-
-    # for characteristic equation 2
-    input_list2.append(b1)
-    input_list2.append(b3)
-    
-    input_list2.append(b2)
-    input_list2.append(b4)
+    send_to_file(input_list1, "input_plain_text_4_round.txt")
 
 
-# Uncomment this portion of code if you want to see input in binary stringsfilename = "input_plain_text.txt"
-# with open("input_binray_strings.txt", "w") as f:  
-#     for i in input_list:
-#         f.write(i + "\n")
+def sixBitGenerator():    
+    input_list1 = []
+    input_list2 = []
 
-send_to_file(input_list1, "input_plain_text_9.txt")
-send_to_file(input_list2, "input_plain_text_10.txt")
+    psi1 = 0x4008000004000000
+    psi2 = 0x0020000800000400
 
+    for i in range(5000):
+        s = generate_64_bit_string()
+        
+        p1 = int(s,2)
+        p2 = p1 ^ psi1
+        p3 = p1 ^ psi2
+        p4 = p2 ^ psi2
+        
+        b1  = '{:064b}'.format(p1)
+        b2  = '{:064b}'.format(p2)
+        b3  = '{:064b}'.format(p3)
+        b4  = '{:064b}'.format(p4)
+
+        # for characteristic equation 1
+        input_list1.append(b1)
+        input_list1.append(b2)
+        
+        input_list1.append(b3)
+        input_list1.append(b4)
+
+        # for characteristic equation 2
+        input_list2.append(b1)
+        input_list2.append(b3)
+        
+        input_list2.append(b2)
+        input_list2.append(b4)
+
+    send_to_file(input_list1, "input_plain_text_9.txt")
+    send_to_file(input_list2, "input_plain_text_10.txt")
+
+
+fourBitGenerator()
 print("input_generator.py work done")

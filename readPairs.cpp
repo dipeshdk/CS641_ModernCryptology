@@ -5,7 +5,7 @@ using namespace std;
 
 int main(){
     ifstream fin;
-    fin.open("final_outputs_2.txt");
+    fin.open("merge_output_1.txt");
     string line;
     string cipherPairs[320][2];
     if(!fin) return 0;
@@ -18,7 +18,7 @@ int main(){
     fin.close();
 
     ofstream fout;
-    fout.open("output_2.txt");
+    fout.open("pair_output_1.txt");
 
     // the following code if for verification purpose only 
     for(int i = 0 ; i < 320; i++){

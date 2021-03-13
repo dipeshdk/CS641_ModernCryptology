@@ -1,7 +1,7 @@
 import re
 
-outputFileFinal = open("final_outputs_10.txt","a")
-inputFile = open("outputs10.txt","r")
+outputFileFinal = open("final_outputs_4_round.txt","w+")
+inputFile = open("outputs_4_round.txt","r")
 # count = 0
 for line in inputFile:
     if re.findall("\t\t",line):

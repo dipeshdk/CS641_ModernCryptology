@@ -8,7 +8,7 @@ port = 22
 username = "student"
 password = "caesar"
 buffsize=4096
-serverTime = 0.05
+serverTime = 0.1
 
 ssh = SSHClient()
 ssh.load_system_host_keys()
@@ -48,8 +48,8 @@ while not chan.recv_ready():
         print("--------------------------------- not ready")
 print (codecs.decode(chan.recv(buffsize),  'UTF-8'))
 
-outputFile = open("outputs6.txt","w+")
-inputFile = open("input_plain_text_6.txt","r")
+outputFile = open("outputs_4_round.txt","w+")
+inputFile = open("input_plain_text_4_round.txt","r")
 i = 0
 missed =set()
 for x in inputFile:
