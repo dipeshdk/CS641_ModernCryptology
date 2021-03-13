@@ -8,7 +8,7 @@ port = 22
 username = "student"
 password = "caesar"
 buffsize=4096
-serverTime = 0.1
+serverTime = 0.05
 
 ssh = SSHClient()
 ssh.load_system_host_keys()
