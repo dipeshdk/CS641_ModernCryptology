@@ -48,8 +48,8 @@ while not chan.recv_ready():
         print("--------------------------------- not ready")
 print (codecs.decode(chan.recv(buffsize),  'UTF-8'))
 
-outputFile = open("outputs6.txt","w+")
-inputFile = open("input_plain_text_6.txt","r")
+outputFile = open("outputs10.txt","w+")
+inputFile = open("input_plain_text_10.txt","r")
 i = 0
 missed =set()
 for x in inputFile:
