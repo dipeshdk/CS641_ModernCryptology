@@ -86,7 +86,7 @@ INT RFP[] = {
 
 int main(){
     ifstream fin;
-    fin.open("final_outputs_1.txt");
+    fin.open("final_outputs_2.txt");
     string line;
     string cipherPairs[320][2];
     if(!fin) return 0;
@@ -113,16 +113,14 @@ int main(){
             out1[i] = cipherPairs[h][0][i];
             out2[i] = cipherPairs[h][1][i];
         }
-        char o1[65], o2[65], o[65], oo1[65], oo2[65]; // Binary of ciphertext
+        char o1[64], o2[64], o[64], oo1[64], oo2[64]; // Binary of ciphertext
 
         // Function to convert the Ciphertext to binary
         for(int i = 0; i < 16; i++){
             INT a = (unsigned int)(out1[i] - 'f');
             INT b = (unsigned int)(out2[i] - 'f');
             for(int j = i*4; j < i*4 + 4; j++){
-                // printf("%u\n", ((a >> (3-(j-(i*4)))) & 01));
                 oo1[j] = '0' + ((a >> (3-(j-(i*4)))) & 01);
-                // printf("%c\n", oo1[j]);
                 oo2[j] = '0' + ((b >> (3-(j-(i*4)))) & 01);
             }
         }
@@ -143,20 +141,9 @@ int main(){
             }
         }
 
-        oo1[64] = '\0';
-        oo2[64] = '\0';
-        o1[64] = '\0';
-        o2[64] = '\0';
-        o[64] = '\0';
-        printf("oo1 = %s\n", oo1);
-        printf("oo2 = %s\n", oo2);
-        printf("o1 = %s\n", o1);
-        printf("o2 = %s\n", o2);
-        printf("o = %s\n", o);
-
         char F[33];
         
-        char C[33] = "00000100000000000000000000000000";
+        char C[33] = "00000000000000000000010000000000";
         for(int i = 0; i < 32; i++){
             if(C[i] == o[i+32]){ // Is there a final swap in fiestel?
                 F[i] = '0';
@@ -183,7 +170,7 @@ int main(){
         // Exp[i] XOR K[i] = input to S box which outputs FP
         // Contruct set X_i
 
-        // Make a set to keep counter of key validities, blocks S2, 5, 6, 7, 8
+        // Make a set to keep counter of key validities, blocks S1, 2, 4, 5, 6
 
         printf("here %d\n", h);
 
@@ -192,7 +179,7 @@ int main(){
 
         /* Map 8 6-bit blocks into 8 4-bit bolcks using S-boxes */
         for(int j = 0; j < 8; j++){
-            if((j == 0) || (j == 2) || (j == 3)) continue;
+            if((j == 2) || (j == 6) || (j == 7)) continue;
             INT x = 0; // XOR of input to Sj
             INT x1 = 0, x2 = 0;
             INT s_out = 0;
@@ -286,11 +273,11 @@ int main(){
         }
     }
 
-    // 2, 5, 6, 7, 8
-    INT k2, k5, k6, k7, k8;
+    // 1, 2, 4, 5, 6
+    INT k1, k2, k4, k5, k6;
 
     for(int i = 0; i < 8; i++){
-        if((i == 0) || (i == 2) || (i == 3)) continue;
+        if((i == 2) || (i == 6) || (i == 7)) continue;
         INT k_max = 0;
         int num = 0;
         for(int j = 0; j < 64; j++){
@@ -301,13 +288,13 @@ int main(){
             printf("%d(%d) ", j, keyf[i][j]);
         }
         printf("\n");
+        if(i == 0) k1 = k_max;
         if(i == 1) k2 = k_max;
+        if(i == 3) k4 = k_max;
         if(i == 4) k5 = k_max;
         if(i == 5) k6 = k_max;
-        if(i == 6) k7 = k_max;
-        if(i == 7) k8 = k_max;
     }
 
-    printf("k2 = %u, k5 = %u, k6 = %u, k7 = %u, k8 = %u\n", k2, k5, k6, k7, k8);
+    printf("k1 = %u, k2 = %u, k4 = %u, k5 = %u, k6 = %u\n", k1, k2, k4, k5, k6);
 
 }
