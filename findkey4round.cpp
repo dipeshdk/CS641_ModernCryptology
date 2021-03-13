@@ -99,9 +99,9 @@ int main(){
     ifstream fin;
     fin.open("merge_output_1.txt");
     string line;
-    string cipherPairs[47000][2];
+    string cipherPairs[150][2];
     if(!fin) return 0;
-    for(int i = 0 ; i < 47000 ; i++){
+    for(int i = 0 ; i < 150 ; i++){
         getline(fin, line);
         cipherPairs[i][0] = line;
         getline(fin, line);
@@ -117,7 +117,7 @@ int main(){
         }
     }
 
-    for(int h = 0; h < 47000; h++){
+    for(int h = 0; h < 150; h++){
         char out1[17]; // Ciphertext
         char out2[17]; // 2nd ciphertext
         for(int i = 0; i < 16; i++){
@@ -166,10 +166,12 @@ int main(){
         printf("o = %s\n", o);
 
         char F[33];
-        
-        char C[33] = "00000100000000000000000000000000";
+        // 00828000
+        char C[33] = "00000000100000101000000000000000";
+        // 00808200
+        // char C[33] = "00000000100000001000001000000000";
         for(int i = 0; i < 32; i++){
-            if(C[i] == o[i]){ // Is there a final swap in fiestel?
+            if(C[i] == o[i+32]){ // Is there a final swap in fiestel?
                 F[i] = '0';
             }
             else{
@@ -186,9 +188,9 @@ int main(){
         // Expand right half of 5th round
         char Exp1[49], Exp2[49], Exp[49];
         for(int j = 0; j < 48; j++){
-            Exp1[j] = o1[E[j]+32];
-            Exp2[j] = o2[E[j]+32];
-            Exp[j] = o[E[j]+32];
+            Exp1[j] = o1[E[j]];
+            Exp2[j] = o2[E[j]];
+            Exp[j] = o[E[j]];
         }
 
         // Exp[i] XOR K[i] = input to S box which outputs FP
@@ -203,7 +205,7 @@ int main(){
 
         /* Map 8 6-bit blocks into 8 4-bit bolcks using S-boxes */
         for(int j = 0; j < 8; j++){
-            if((j == 0) || (j == 2) || (j == 3)) continue;
+            // if((j == 0) || (j == 2) || (j == 3)) continue;
             INT x = 0; // XOR of input to Sj
             INT x1 = 0, x2 = 0;
             INT s_out = 0;
@@ -298,10 +300,11 @@ int main(){
     }
 
     // 2, 5, 6, 7, 8
-    INT k2, k5, k6, k7, k8;
+    // INT k2, k5, k6, k7, k8;
+    INT k[8];
 
     for(int i = 0; i < 8; i++){
-        if((i == 0) || (i == 2) || (i == 3)) continue;
+        // if((i == 0) || (i == 2) || (i == 3)) continue;
         INT k_max = 0;
         int num = 0;
         for(int j = 0; j < 64; j++){
@@ -312,13 +315,18 @@ int main(){
             printf("%d(%d) ", j, keyf[i][j]);
         }
         printf("\n");
-        if(i == 1) k2 = k_max;
-        if(i == 4) k5 = k_max;
-        if(i == 5) k6 = k_max;
-        if(i == 6) k7 = k_max;
-        if(i == 7) k8 = k_max;
+        // if(i == 1) k2 = k_max;
+        // if(i == 4) k5 = k_max;
+        // if(i == 5) k6 = k_max;
+        // if(i == 6) k7 = k_max;
+        // if(i == 7) k8 = k_max;
+        k[i] = k_max;
+        
     }
 
-    printf("k2 = %u, k5 = %u, k6 = %u, k7 = %u, k8 = %u\n", k2, k5, k6, k7, k8);
+    for(int i = 0; i < 8; i++){
+        printf("k%d = %d\n", i, k[i]);
+    }
+    // printf("k2 = %u, k5 = %u, k6 = %u, k7 = %u, k8 = %u\n", k2, k5, k6, k7, k8);
 
 }

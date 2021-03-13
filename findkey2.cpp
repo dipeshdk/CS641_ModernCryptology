@@ -86,11 +86,11 @@ INT RFP[] = {
 
 int main(){
     ifstream fin;
-    fin.open("final_outputs_2.txt");
+    fin.open("merge_output_2.txt");
     string line;
-    string cipherPairs[320][2];
+    string cipherPairs[37250][2];
     if(!fin) return 0;
-    for(int i = 0 ; i < 320 ; i++){
+    for(int i = 0 ; i < 37250 ; i++){
         getline(fin, line);
         cipherPairs[i][0] = line;
         getline(fin, line);
@@ -106,7 +106,7 @@ int main(){
         }
     }
 
-    for(int h = 0; h < 320; h++){
+    for(int h = 0; h < 37250; h++){
         char out1[17]; // Ciphertext
         char out2[17]; // 2nd ciphertext
         for(int i = 0; i < 16; i++){
@@ -145,7 +145,7 @@ int main(){
         
         char C[33] = "00000000000000000000010000000000";
         for(int i = 0; i < 32; i++){
-            if(C[i] == o[i+32]){ // Is there a final swap in fiestel?
+            if(C[i] == o[i]){ // Is there a final swap in fiestel?
                 F[i] = '0';
             }
             else{
@@ -162,9 +162,9 @@ int main(){
         // Expand right half of 5th round
         char Exp1[49], Exp2[49], Exp[49];
         for(int j = 0; j < 48; j++){
-            Exp1[j] = o1[E[j]];
-            Exp2[j] = o2[E[j]];
-            Exp[j] = o[E[j]];
+            Exp1[j] = o1[E[j]+32];
+            Exp2[j] = o2[E[j]+32];
+            Exp[j] = o[E[j]+32];
         }
 
         // Exp[i] XOR K[i] = input to S box which outputs FP
