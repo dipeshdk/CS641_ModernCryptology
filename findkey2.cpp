@@ -145,7 +145,7 @@ int main(){
         
         char C[33] = "00000000000000000000010000000000";
         for(int i = 0; i < 32; i++){
-            if(C[i] == o[i]){ // Is there a final swap in fiestel?
+            if(C[i] == o[i+32]){ // Is there a final swap in fiestel?
                 F[i] = '0';
             }
             else{
@@ -162,9 +162,9 @@ int main(){
         // Expand right half of 5th round
         char Exp1[49], Exp2[49], Exp[49];
         for(int j = 0; j < 48; j++){
-            Exp1[j] = o1[E[j]+32];
-            Exp2[j] = o2[E[j]+32];
-            Exp[j] = o[E[j]+32];
+            Exp1[j] = o1[E[j]];
+            Exp2[j] = o2[E[j]];
+            Exp[j] = o[E[j]];
         }
 
         // Exp[i] XOR K[i] = input to S box which outputs FP
@@ -216,10 +216,14 @@ int main(){
 
             for(INT i = 0; i < 64; i++){
                 k= 6*j;
-                INT y = x^i; // i is Beta, y is Beta'
+                // INT y = x^i; // i is Beta, y is Beta'
+                INT y = x1^i, z = x2^i;
+
                 for(int a = 0; a < 6; a++){
-                    preS1[a+k] = (i >> (5-a)) & 01;
-                    preS2[a+k] = (y >> (5-a)) & 01;
+                    // preS1[a+k] = (i >> (5-a)) & 01;
+                    // preS2[a+k] = (y >> (5-a)) & 01;
+                    preS1[a+k] = (y >> (5-a)) & 01;
+                    preS2[a+k] = (z >> (5-a)) & 01;
                 }
 
                 // printf("here 4\n");
@@ -266,7 +270,8 @@ int main(){
                 }
                 if(s_out == w){
                     // This valid pair
-                    keyf[j][i^x1]++;
+                    // keyf[j][i^x1]++;
+                    keyf[j][i]++;
                 }
             }
             /* Compute index t into jth s box */
