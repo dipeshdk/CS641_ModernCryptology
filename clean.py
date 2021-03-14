@@ -1,13 +1,11 @@
 import re
 
-outputFileFinal = open("final_outputs_4_round.txt","w+")
-inputFile = open("outputs_4_round.txt","r")
-# count = 0
+outputFileFinal = open("test.txt","w+")
+inputFile = open("./raw_outputs/outputs1.txt","r")
+
 for line in inputFile:
     if re.findall("\t\t",line):
-        # count = count + 1
-        outputFileFinal.write(line)
+        outputFileFinal.write(line.strip('\t\t'))
 
-# print(f"{inputFile} pushed {count} lines in {outputFileFinal}")
 outputFileFinal.close()
 inputFile.close()
