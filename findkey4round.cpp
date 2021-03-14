@@ -97,7 +97,7 @@ INT RFP_INV[] = {
 
 int main(){
     ifstream fin;
-    fin.open("merge_output_1.txt");
+    fin.open("final_outputs_4_round.txt");
     string line;
     string cipherPairs[150][2];
     if(!fin) return 0;
@@ -171,7 +171,7 @@ int main(){
         // 00808200
         // char C[33] = "00000000100000001000001000000000";
         for(int i = 0; i < 32; i++){
-            if(C[i] == o[i+32]){ // Is there a final swap in fiestel?
+            if(C[i] == o[i]){ // Is there a final swap in fiestel?
                 F[i] = '0';
             }
             else{
@@ -188,9 +188,9 @@ int main(){
         // Expand right half of 5th round
         char Exp1[49], Exp2[49], Exp[49];
         for(int j = 0; j < 48; j++){
-            Exp1[j] = o1[E[j]];
-            Exp2[j] = o2[E[j]];
-            Exp[j] = o[E[j]];
+            Exp1[j] = o1[E[j]+32];
+            Exp2[j] = o2[E[j]+32];
+            Exp[j] = o[E[j]+32];
         }
 
         // Exp[i] XOR K[i] = input to S box which outputs FP
