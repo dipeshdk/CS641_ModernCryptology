@@ -1,6 +1,7 @@
 #include<iostream>
 #include<fstream>
 #include<unordered_map>
+#include<set>
 
 #define BYTE unsigned char
 
@@ -98,7 +99,7 @@ INT RFP_INV[] = {
 
 int main(){
     ifstream fin;
-    int num_inputs = 10;
+    int num_inputs = 1;
     fin.open("merge_output_1.txt");
     string line;
     string cipherPairs[num_inputs][2];
@@ -173,7 +174,7 @@ int main(){
         
         char C[33] = "00000100000000000000000000000000";
         for(int i = 0; i < 32; i++){
-            if(C[i] == o[i]){ // Is there a final swap in fiestel?
+            if(C[i] == o[i+32]){ // Is there a final swap in fiestel?
                 F[i] = '0';
             }
             else{
@@ -190,9 +191,9 @@ int main(){
         // Expand right half of 5th round
         char Exp1[49], Exp2[49], Exp[49];
         for(int j = 0; j < 48; j++){
-            Exp1[j] = o1[E[j]+32];
-            Exp2[j] = o2[E[j]+32];
-            Exp[j] = o[E[j]+32];
+            Exp1[j] = o1[E[j]];
+            Exp2[j] = o2[E[j]];
+            Exp[j] = o[E[j]];
         }
 
         // Exp[i] XOR K[i] = input to S box which outputs FP
@@ -207,9 +208,10 @@ int main(){
 
         /* Map 8 6-bit blocks into 8 4-bit bolcks using S-boxes */
         int num = 5;
-        for(INT key = 0; key < (1 << 30); key++){
-            printf("key = %u\n", key);
-            int flag = 1;
+        // for(INT key = 0; key < (1 << 30); key++){
+            // printf("key = %u\n", key);
+            // int flag = 1;
+            set<INT> pkeys[5];
             for(int j = 0; j < 8; j++){
                 if((j == 0) || (j == 2) || (j == 3)) continue;
                 num--;
@@ -247,8 +249,8 @@ int main(){
                 
                 // printf("here 2\n");
 
-                // for(INT i = 0; i < 64; i++){
-                    INT i = (key >> (num*6)) & 0x3F;
+                for(INT i = 0; i < 64; i++){
+                    // INT i = (key >> (num*6)) & 0x3F;
                     k= 6*j;
                     // INT y = x^i; // i is Beta, y is Beta'
                     INT y = x1^i, z = x2^i;
@@ -305,26 +307,51 @@ int main(){
                     if(s_out == w){
                         // This valid pair
                         // keyf[j][i^x1]++;
-                        keyf[j][i]++;
+                        // keyf[j][i]++;
+                        pkeys[num].insert(i);
                     }
-                    else{
-                        flag = 0;
-                        break;
-                    }
-                // }
+                    // else{
+                    //     flag = 0;
+                    //     break;
+                    // }
+                }
                 /* Compute index t into jth s box */
             }
 
-            if(flag == 1){
-                if(umap.find(key) == umap.end()){
-                    umap[key] = 1;
-                }
-                else{
-                    umap[key] = umap[key]+1;
+            set<INT>::iterator itr1, itr2, itr3, itr4, itr5;
+            for(itr1 = pkeys[0].begin(); itr1 != pkeys[0].end(); itr1++){
+                for(itr2 = pkeys[1].begin(); itr2 != pkeys[1].end(); itr2++){
+                    for(itr3 = pkeys[2].begin(); itr3 != pkeys[2].end(); itr3++){
+                        for(itr4 = pkeys[3].begin(); itr4 != pkeys[3].end(); itr4++){
+                            for(itr5 = pkeys[4].begin(); itr5 != pkeys[4].end(); itr5++){
+                                INT key = *itr1 << 24;
+                                key += *itr2 << 18;
+                                key += *itr3 << 12;
+                                key += *itr4 << 6;
+                                key += *itr5;
+                                cout << key << endl;
+                                if(umap.find(key) == umap.end()){
+                                    umap[key] = 1;
+                                }
+                                else{
+                                    printf("found again\n");
+                                    umap[key] = umap[key]+1;
+                                }
+                            }
+                        }
+                    }
                 }
             }
+            // if(flag == 1){
+            //     if(umap.find(key) == umap.end()){
+            //         umap[key] = 1;
+            //     }
+            //     else{
+            //         umap[key] = umap[key]+1;
+            //     }
+            // }
 
-        }
+        // }
 
     }
 
@@ -351,16 +378,29 @@ int main(){
     // }
     INT key_max = 0;
     int num = 0;
-    for(INT i = 0; i < (1 << 30); i++){
-        if(umap.find(i) == umap.end()){
-            continue;
+    // for(INT i = 0; i < (1 << 30); i++){
+    //     if(umap.find(i) == umap.end()){
+    //         continue;
+    //     }
+    //     // printf("key = %u, num = %d\n", i, umap[i]);
+    //     if(num < umap[i]){
+    //         num = umap[i];
+    //         key_max = i;
+    //     }
+    // }
+
+    unordered_map<INT, INT>::iterator itr;
+    for(itr = umap.begin(); itr != umap.end(); itr++){
+        if(itr->second > 1){
+            printf("key = %u, num = %d\n", itr->first, itr->second);
         }
-        printf("key = %u, num = %d\n", i, umap[i]);
-        if(num < umap[i]){
-            num = umap[i];
-            key_max = i;
+        if(num < itr->second){
+            key_max = itr->first;
+            num = itr->second;
         }
     }
+
+    printf("key_max = %u, num = %d\n", key_max, num);
 
     k2 = (key_max >> (4*6)) & 0x3F;
     k5 = (key_max >> (3*6)) & 0x3F;
