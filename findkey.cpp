@@ -1,5 +1,6 @@
 #include<iostream>
 #include<fstream>
+#include<unordered_map>
 
 #define BYTE unsigned char
 
@@ -97,11 +98,12 @@ INT RFP_INV[] = {
 
 int main(){
     ifstream fin;
+    int num_inputs = 10;
     fin.open("merge_output_1.txt");
     string line;
-    string cipherPairs[47000][2];
+    string cipherPairs[num_inputs][2];
     if(!fin) return 0;
-    for(int i = 0 ; i < 47000 ; i++){
+    for(int i = 0 ; i < num_inputs ; i++){
         getline(fin, line);
         cipherPairs[i][0] = line;
         getline(fin, line);
@@ -117,7 +119,9 @@ int main(){
         }
     }
 
-    for(int h = 0; h < 47000; h++){
+    unordered_map<INT, INT> umap; 
+
+    for(int h = 0; h < num_inputs; h++){
         char out1[17]; // Ciphertext
         char out2[17]; // 2nd ciphertext
         for(int i = 0; i < 16; i++){
@@ -169,7 +173,7 @@ int main(){
         
         char C[33] = "00000100000000000000000000000000";
         for(int i = 0; i < 32; i++){
-            if(C[i] == o[i+32]){ // Is there a final swap in fiestel?
+            if(C[i] == o[i]){ // Is there a final swap in fiestel?
                 F[i] = '0';
             }
             else{
@@ -186,9 +190,9 @@ int main(){
         // Expand right half of 5th round
         char Exp1[49], Exp2[49], Exp[49];
         for(int j = 0; j < 48; j++){
-            Exp1[j] = o1[E[j]];
-            Exp2[j] = o2[E[j]];
-            Exp[j] = o[E[j]];
+            Exp1[j] = o1[E[j]+32];
+            Exp2[j] = o2[E[j]+32];
+            Exp[j] = o[E[j]+32];
         }
 
         // Exp[i] XOR K[i] = input to S box which outputs FP
@@ -202,127 +206,167 @@ int main(){
         BYTE preS1[48], preS2[48];
 
         /* Map 8 6-bit blocks into 8 4-bit bolcks using S-boxes */
-        for(int j = 0; j < 8; j++){
-            if((j == 0) || (j == 2) || (j == 3)) continue;
-            INT x = 0; // XOR of input to Sj
-            INT x1 = 0, x2 = 0;
-            INT s_out = 0;
-            for(int i = j*6; i < j*6 + 6; i++){
-                if(Exp[i] == '1'){
-                    x = (x << 1)+1;
+        int num = 5;
+        for(INT key = 0; key < (1 << 30); key++){
+            printf("key = %u\n", key);
+            int flag = 1;
+            for(int j = 0; j < 8; j++){
+                if((j == 0) || (j == 2) || (j == 3)) continue;
+                num--;
+                INT x = 0; // XOR of input to Sj
+                INT x1 = 0, x2 = 0;
+                INT s_out = 0;
+                for(int i = j*6; i < j*6 + 6; i++){
+                    if(Exp[i] == '1'){
+                        x = (x << 1)+1;
+                    }
+                    else{
+                        x = (x << 1)+0;
+                    }
+                    if(Exp1[i] == '1'){
+                        x1 = (x1 << 1)+1;
+                    }
+                    else{
+                        x1 = (x1 << 1)+0;
+                    }
+                    if(Exp2[i] == '1'){
+                        x2 = (x2 << 1)+1;
+                    }
+                    else{
+                        x2 = (x2 << 1)+0;
+                    }
+                }
+                for(int i = j*4; i < j*4 + 4; i++){
+                    if(FP[i] == '1'){
+                        s_out = (s_out << 1)+1;
+                    }
+                    else{
+                        s_out = (s_out << 1)+0;
+                    }
+                }
+                
+                // printf("here 2\n");
+
+                // for(INT i = 0; i < 64; i++){
+                    INT i = (key >> (num*6)) & 0x3F;
+                    k= 6*j;
+                    // INT y = x^i; // i is Beta, y is Beta'
+                    INT y = x1^i, z = x2^i;
+                    
+                    for(int a = 0; a < 6; a++){
+                        // preS1[a+k] = (i >> (5-a)) & 01;
+                        // preS2[a+k] = (y >> (5-a)) & 01;
+                        preS1[a+k] = (y >> (5-a)) & 01;
+                        preS2[a+k] = (z >> (5-a)) & 01;
+                    }
+
+                    // printf("here 4\n");
+                    
+                    BYTE f1[4];
+                    
+                    t = preS1[k];
+                    t = (t<<1) | preS1[k+5];
+                    t = (t<<1) | preS1[k+1];
+                    t = (t<<1) | preS1[k+2];
+                    t = (t<<1) | preS1[k+3];
+                    t = (t<<1) | preS1[k+4];
+                    /* fetch t th entry fron jth sbox */
+                    t = S[j][t];
+                    /* generate 4-bit block from s-box entry */
+                    k= 4*j;
+                    f1[0] = (t>>3)&1;
+                    f1[1] = (t >> 2) & 1;
+                    f1[2] = (t >> 1) & 1;
+                    f1[3] = t &1;
+                    
+                    // printf("here 3\n");
+
+                    BYTE f2[4];
+                    k= 6*j;
+                    t = preS2[k];
+                    t = (t<<1) | preS2[k+5];
+                    t = (t<<1) | preS2[k+1];
+                    t = (t<<1) | preS2[k+2];
+                    t = (t<<1) | preS2[k+3];
+                    t = (t<<1) | preS2[k+4];
+                    /* fetch t th entry fron jth sbox */
+                    t = S[j][t];
+                    /* generate 4-bit block from s-box entry */
+                    k= 4*j;
+                    f2[0] = (t>>3)&1;
+                    f2[1] = (t >> 2) & 1;
+                    f2[2] = (t >> 1) & 1;
+                    f2[3] = t &1;
+
+                    INT w = 0;
+                    for(int i = 0; i < 4; i++){
+                        w = w + ((f1[i]^f2[i]) << (3-i));
+                    }
+                    if(s_out == w){
+                        // This valid pair
+                        // keyf[j][i^x1]++;
+                        keyf[j][i]++;
+                    }
+                    else{
+                        flag = 0;
+                        break;
+                    }
+                // }
+                /* Compute index t into jth s box */
+            }
+
+            if(flag == 1){
+                if(umap.find(key) == umap.end()){
+                    umap[key] = 1;
                 }
                 else{
-                    x = (x << 1)+0;
-                }
-                if(Exp1[i] == '1'){
-                    x1 = (x1 << 1)+1;
-                }
-                else{
-                    x1 = (x1 << 1)+0;
-                }
-                if(Exp2[i] == '1'){
-                    x2 = (x2 << 1)+1;
-                }
-                else{
-                    x2 = (x2 << 1)+0;
+                    umap[key] = umap[key]+1;
                 }
             }
-            for(int i = j*4; i < j*4 + 4; i++){
-                if(FP[i] == '1'){
-                    s_out = (s_out << 1)+1;
-                }
-                else{
-                    s_out = (s_out << 1)+0;
-                }
-            }
-            
-            // printf("here 2\n");
 
-            for(INT i = 0; i < 64; i++){
-                k= 6*j;
-                // INT y = x^i; // i is Beta, y is Beta'
-                INT y = x1^i, z = x2^i;
-                
-                for(int a = 0; a < 6; a++){
-                    // preS1[a+k] = (i >> (5-a)) & 01;
-                    // preS2[a+k] = (y >> (5-a)) & 01;
-                    preS1[a+k] = (y >> (5-a)) & 01;
-                    preS2[a+k] = (z >> (5-a)) & 01;
-                }
-
-                // printf("here 4\n");
-                
-                BYTE f1[4];
-                
-                t = preS1[k];
-                t = (t<<1) | preS1[k+5];
-                t = (t<<1) | preS1[k+1];
-                t = (t<<1) | preS1[k+2];
-                t = (t<<1) | preS1[k+3];
-                t = (t<<1) | preS1[k+4];
-                /* fetch t th entry fron jth sbox */
-                t = S[j][t];
-                /* generate 4-bit block from s-box entry */
-                k= 4*j;
-                f1[0] = (t>>3)&1;
-                f1[1] = (t >> 2) & 1;
-                f1[2] = (t >> 1) & 1;
-                f1[3] = t &1;
-                
-                // printf("here 3\n");
-
-                BYTE f2[4];
-                k= 6*j;
-                t = preS2[k];
-                t = (t<<1) | preS2[k+5];
-                t = (t<<1) | preS2[k+1];
-                t = (t<<1) | preS2[k+2];
-                t = (t<<1) | preS2[k+3];
-                t = (t<<1) | preS2[k+4];
-                /* fetch t th entry fron jth sbox */
-                t = S[j][t];
-                /* generate 4-bit block from s-box entry */
-                k= 4*j;
-                f2[0] = (t>>3)&1;
-                f2[1] = (t >> 2) & 1;
-                f2[2] = (t >> 1) & 1;
-                f2[3] = t &1;
-
-                INT w = 0;
-                for(int i = 0; i < 4; i++){
-                    w = w + ((f1[i]^f2[i]) << (3-i));
-                }
-                if(s_out == w){
-                    // This valid pair
-                    // keyf[j][i^x1]++;
-                    keyf[j][i]++;
-                }
-            }
-            /* Compute index t into jth s box */
         }
+
     }
 
     // 2, 5, 6, 7, 8
     INT k2, k5, k6, k7, k8;
 
-    for(int i = 0; i < 8; i++){
-        if((i == 0) || (i == 2) || (i == 3)) continue;
-        INT k_max = 0;
-        int num = 0;
-        for(int j = 0; j < 64; j++){
-            if(keyf[i][j] > num){
-                num = keyf[i][j];
-                k_max = (unsigned int)j;
-            }
-            printf("%d(%d) ", j, keyf[i][j]);
+    // for(int i = 0; i < 8; i++){
+    //     if((i == 0) || (i == 2) || (i == 3)) continue;
+    //     INT k_max = 0;
+    //     int num = 0;
+    //     for(int j = 0; j < 64; j++){
+    //         if(keyf[i][j] > num){
+    //             num = keyf[i][j];
+    //             k_max = (unsigned int)j;
+    //         }
+    //         printf("%d(%d) ", j, keyf[i][j]);
+    //     }
+    //     printf("\n");
+    //     if(i == 1) k2 = k_max;
+    //     if(i == 4) k5 = k_max;
+    //     if(i == 5) k6 = k_max;
+    //     if(i == 6) k7 = k_max;
+    //     if(i == 7) k8 = k_max;
+    // }
+    INT key_max = 0;
+    int num = 0;
+    for(INT i = 0; i < (1 << 30); i++){
+        if(umap.find(i) == umap.end()){
+            continue;
         }
-        printf("\n");
-        if(i == 1) k2 = k_max;
-        if(i == 4) k5 = k_max;
-        if(i == 5) k6 = k_max;
-        if(i == 6) k7 = k_max;
-        if(i == 7) k8 = k_max;
+        printf("key = %u, num = %d\n", i, umap[i]);
+        if(num < umap[i]){
+            num = umap[i];
+            key_max = i;
+        }
     }
+
+    k2 = (key_max >> (4*6)) & 0x3F;
+    k5 = (key_max >> (3*6)) & 0x3F;
+    k6 = (key_max >> (2*6)) & 0x3F;
+    k7 = (key_max >> (1*6)) & 0x3F;
+    k8 = (key_max >> (0*6)) & 0x3F;
 
     printf("k2 = %u, k5 = %u, k6 = %u, k7 = %u, k8 = %u\n", k2, k5, k6, k7, k8);
 
