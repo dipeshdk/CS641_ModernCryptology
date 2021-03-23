@@ -1,3 +1,4 @@
+# name will be changed to utils.py afterwords
 from pyfinite import ffield
 
 binToCharDict = {'0000': 'f',

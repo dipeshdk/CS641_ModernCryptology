@@ -1,4 +1,4 @@
-import req_functions as rf
+import req_functions as utils
 import eaeae 
 
 # this matrix will be changed after we find the matrix from the input output pairs 
@@ -15,15 +15,15 @@ MATRIX_EXP = [88, 34, 20, 43, 26, 63, 102, 23]
 
 
 def decrypt_password(password):
-    password_in_byte = rf.block_to_byte(password)
+    password_in_byte = utils.block_to_byte(password)
     op = ""
     
     for i in range(0,8):
         for j in range(0,128):
-            input = op  + rf.byte_str(j) + (14-len(op))*'f'
+            input = op  + utils.byte_str(j) + (14-len(op))*'f'
             
-            if ord(password_in_byte[i]) == eaeae.EAEAE(rf.block_to_byte(input), MATRIX_A, MATRIX_EXP)[i]:
-                op += rf.byte_str(j)
+            if ord(password_in_byte[i]) == eaeae.EAEAE(utils.block_to_byte(input), MATRIX_A, MATRIX_EXP)[i]:
+                op += utils.byte_str(j)
                 break
     
     return op
@@ -32,7 +32,7 @@ def decrypt_password(password):
 password_first_half = "lhmiflkkhnimfqkl"
 password_second_half = "kfhohmgllukpjjfj"
 
-pass_first_half_decrypted = rf.block_to_byte(decrypt_password(password_first_half))
-pass_second_half_decrypted = rf.block_to_byte(decrypt_password(password_second_half))
+pass_first_half_decrypted = utils.block_to_byte(decrypt_password(password_first_half))
+pass_second_half_decrypted = utils.block_to_byte(decrypt_password(password_second_half))
 
 print(pass_first_half_decrypted + pass_second_half_decrypted)
