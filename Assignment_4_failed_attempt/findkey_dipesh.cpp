@@ -1,6 +1,7 @@
 #include<iostream>
 #include<fstream>
 #include<vector>
+#include<bits/stdc++.h>
 
 #define BYTE unsigned char
 
@@ -136,9 +137,9 @@ int binToDec(string& Exp, int s, int e){
     int x = 0;
     for (int i = s; i < e; i++){
         if(Exp[i] == '1')
-        x = (x << 1)+1;
-    else
-        x = (x << 1)+0;    
+            x = (x << 1)+1;
+        else
+            x = (x << 1)+0;    
     }
     return x;
 }
@@ -164,19 +165,18 @@ vector<int> genF(const vector<int>& preS, int j){
 
 int main(){
     string input_filename = "merge_output_1.txt";
-    int pairs = 47000;
+    int pairs = 3000;
 
     vector< vector<string> > cipherPairs = take_input(input_filename, pairs);
-    vector< vector<int> >  keyf(8, vector<int>(64,0));
+
+    unordered_map<int,int> umap;
 
     for(int h = 0; h < pairs; h++){
         string out1 = cipherPairs[h][0];
         string out2 = cipherPairs[h][1];
-        
         // Function to convert the Ciphertext to binary
         string oo1 = strToBin(out1);
         string oo2 = strToBin(out2);
-        
         // Function to apply inverse permutation RFP to ciphertext
         string o1 = "";
         string o2 = "";
@@ -184,88 +184,99 @@ int main(){
             o1.push_back(oo1[RFP_INV[i]-1]);
             o2.push_back(oo2[RFP_INV[i]-1]);
         }
+        
+        // Expansion
+        string Exp1 = "", Exp2="";
+        for(int i =0 ;i < 48;i++){
+            Exp1.push_back(o1[E[i]-1]);
+            Exp2.push_back(o2[E[i]-1]);
+        }
+        string Exp = strxor(Exp1,Exp2);
 
         // Function to XOR o1 and o2 and store in o
         string o = strxor(o1,o2);
-        
         string C = "00000100000000000000000000000000";
-        string F = strxor(C,o);
+        string F = "";
+        for(int i = 0; i < 32; i++){
+            if(C[i] == o[i+32]) F.push_back('0');
+            else F.push_back('1');
+        }
 
         // Inverse Permute F to get output of S box in Round 6
         string FP = "";
         for(int i = 0; i < 32; i++){
             FP.push_back(F[INV_P[i]-1]);
         }
-
         // Expand right half of 5th round
-        string Exp1 = "", Exp2= "", Exp = "";
-        for(int j = 0; j < 48; j++){
-            Exp1.push_back(o1[E[j]+32]);
-            Exp2.push_back(o2[E[j]+32]);
-            Exp.push_back(o[E[j]+32]);
-        }
-
-        // Exp[i] XOR K[i] = input to S box which outputs FP
-        // Contruct set X_i
-
-        // Make a set to keep counter of key validities, blocks S2, 5, 6, 7, 8
-
+        
+        // for(int j = 0; j < 48; j++){
+        //     Exp1.push_back(o1[E[j]]);
+        //     Exp2.push_back(o2[E[j]]);
+        //     Exp.push_back(o[E[j]]);
+        // }
         vector<int> preS1(48), preS2(48);
-
-        /* Map 8 6-bit blocks into 8 4-bit bolcks using S-boxes */
+        int num = 5;
+        set<int> pkeys[5];
         for(int j = 0; j < 8; j++){
             if((j == 0) || (j == 2) || (j == 3)) continue;
-            
-            INT x = binToDec(Exp, j*6, j*6+6); // XOR of input to Sj
-            INT x1 = binToDec(Exp1, j*6, j*6 + 6);
-            INT x2 = binToDec(Exp2, j*6, j*6 + 6);
-            INT s_out = binToDec(FP, j*4, j*4 + 4);
-            
-            for(INT i = 0; i < 64; i++){
+            num--;
+            int x = binToDec(Exp, j*6, j*6+6); // XOR of input to Sj
+            int x1 = binToDec(Exp1, j*6, j*6 + 6);
+            int x2 = binToDec(Exp2, j*6, j*6 + 6);
+            int s_out = binToDec(FP, j*4, j*4 + 4);
+            for(int i = 0; i < 64; i++){
                 int k= 6*j;
-                INT y = x^i; // i is Beta, y is Beta'
+                int y = x1^i;
+                int z = x2^i;
                 for(int a = 0; a < 6; a++){
-                    preS1[a+k] = (i >> (5-a)) & 01;
-                    preS2[a+k] = (y >> (5-a)) & 01;
+                    preS1[a+k] = (y >> (5-a)) & 01;
+                    preS2[a+k] = (z >> (5-a)) & 01;
                 }
-
                 vector<int> f1 = genF(preS1, j);
                 vector<int> f2 = genF(preS2, j);
-                
                 INT w = 0;
                 for(int i = 0; i < 4; i++){
                     w = w + ((f1[i]^f2[i]) << (3-i));
                 }
-                if(s_out == w){
-                    // This valid pair
-                    keyf[j][i^x1]++;
-                }
+                if(s_out == w) pkeys[4-num].insert(i);
             }
-            /* Compute index t into jth s box */
         }
+
+        for(auto itr1: pkeys[0]) for(auto itr2: pkeys[1])
+            for(auto itr3: pkeys[2]) for(auto itr4: pkeys[3])
+                for(auto itr5: pkeys[4]){
+                    int key = itr1 << 24;
+                    key+= (itr2<<18);
+                    key+= (itr3<<12);
+                    key+= (itr4<<6);
+                    key+= (itr5);
+                    // cout << itr1 << " " << itr2 << " " << itr3 << " " << itr4 << " " << itr5 << endl;
+                    // cout << key << endl;
+                    if(umap.find(key) == umap.end()) umap[key] = 1;
+                    else umap[key]++;
+                }
     }
 
     // 2, 5, 6, 7, 8
     INT k2, k5, k6, k7, k8;
+    int max_key = 0;
+    int mx = 0;
 
-    for(int i = 0; i < 8; i++){
-        if((i == 0) || (i == 2) || (i == 3)) continue;
-        INT k_max = 0;
-        int num = 0;
-        for(int j = 0; j < 64; j++){
-            if(keyf[i][j] > num){
-                num = keyf[i][j];
-                k_max = (unsigned int)j;
-            }
-            printf("%d(%d) ", j, keyf[i][j]);
+    for(auto itr1: umap){
+        if(itr1.second > 1){
+            cout << "key =  "<< itr1.first <<  " num = " << itr1.second << endl;;
         }
-        printf("\n");
-        if(i == 1) k2 = k_max;
-        if(i == 4) k5 = k_max;
-        if(i == 5) k6 = k_max;
-        if(i == 6) k7 = k_max;
-        if(i == 7) k8 = k_max;
+        if(mx < itr1.second){
+            max_key = itr1.first;
+            mx = itr1.second;
+        }
     }
+
+    k2 = (max_key >> (4*6)) & 0x3F;
+    k5 = (max_key >> (3*6)) & 0x3F;
+    k6 = (max_key >> (2*6)) & 0x3F;
+    k7 = (max_key >> (1*6)) & 0x3F;
+    k8 = (max_key >> (0*6)) & 0x3F;
 
     printf("k2 = %u, k5 = %u, k6 = %u, k7 = %u, k8 = %u\n", k2, k5, k6, k7, k8);
 
