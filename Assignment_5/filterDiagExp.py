@@ -1,13 +1,14 @@
+import req_functions as rf
 #Possible values of exponent vector
-possibleExp = [[]*8]
+possibleExp = [[20, 108], [20, 108], [22, 37, 68], [78, 85, 91], [18, 21, 88], [16, 50, 61], [23, 48, 56], [17, 41, 69]]
 #Possible values of matrix
-possibleDiagMat = [[]*8]
+possibleDiagMat = [[84, 67], [77, 70], [33, 43, 98], [12, 8, 104], [64, 100, 112], [86, 11, 97], [27, 71, 92], [38, 61, 125]]
 
 #Possible values of exponent vector Filtered
-possibleExpFiltered = [[]*8]
+possibleExpFiltered = [[],[],[],[],[],[],[],[]]
 #Possible values of matrix Filtered
-possibleDiagMatFiltered = [[]*8]
-possibleOffDiag = [[]*7]
+possibleDiagMatFiltered = [[],[],[],[],[],[],[],[]]
+possibleOffDiag = [[],[],[],[],[],[],[]]
 
 inputFile = open("inputs.txt", 'r')
 outputFile = open("outputs.txt", 'r')
@@ -21,14 +22,13 @@ for (inpLine, outLine) in zip(inputFile.readlines(), outputFile.readlines()):
         for (exp_i, mat_i) in zip(possibleExp[lineNo], possibleDiagMat[lineNo]):
             for (exp_iplus, mat_iplus) in zip(possibleExp[lineNo+1], possibleDiagMat[lineNo+1]):
                 valid = True
-                for (inp, out) in zip(inpLine.strip.split(" "), outLine.strip.split(" ")):
-                    inpBytes = block_to_byte(inp) #funcname
-                    outBytes = block_to_byte(out)
-
-                    EA_i = Multiply(mat_iplus, Exp(inpBytes[lineNo], exp_i))
-                    EA_iplus = Multiply(mat, Exp(inpBytes[lineNo], exp_i))
-                    EAEA_iplus = Add(Multiply(mat, Exp(EA_i, exp_i)), Multiply(mat_iplus, EXP(EA_iplus, exp_iplus)))
-                    EAEAE_iplus = Exp(EAEA_iplus, exp_iplus)
+                for (inp, out) in zip(inpLine.strip().split(" "), outLine.strip().split(" ")):
+                    inpBytes = rf.block_to_byte(inp)
+                    outBytes = rf.block_to_byte(out)
+                    EA_i = rf.multiply_num(mat_i, rf.Exponential(ord(inpBytes[lineNo]), exp_i))
+                    EA_iplus = rf.multiply_num(mat, rf.Exponential(ord(inpBytes[lineNo]), exp_i))
+                    EAEA_iplus = rf.add_num(rf.multiply_num(mat, rf.Exponential(EA_i, exp_i)), rf.multiply_num(mat_iplus, rf.Exponential(EA_iplus, exp_iplus)))
+                    EAEAE_iplus = rf.Exponential(EAEA_iplus, exp_iplus)
 
                     if EAEAE_iplus != ord(outBytes[lineNo+1]):
                         valid = False

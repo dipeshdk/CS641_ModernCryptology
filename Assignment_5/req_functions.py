@@ -38,8 +38,9 @@ def add_num (n1, n2):
     return int(n1) ^ int(n2)
 
 
+F = ffield.FField(7)
 def multiply_num (n1, n2):
-    return ffield.FField(7).Multiply(n1, n2)
+    return F.Multiply(n1, n2)
 
 
 def add_two_vectors (vector1, vector2):
