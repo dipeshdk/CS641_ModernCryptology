@@ -1,4 +1,3 @@
-# name will be changed to utils.py afterwords
 from pyfinite import ffield
 
 binToCharDict = {'0000': 'f',
@@ -99,3 +98,21 @@ def Exponential(num, power):
         temp = multiply_num(sqrt_no, sqrt_no)
         store_exp[num][power] = multiply_num(num, temp)
         return store_exp[num][power]
+
+def eaeae (plaintext, linearMatrix, exponentMatrix):
+    plaintext = [ord(c) for c in plaintext]
+    ciphertext0 = [0]*8
+    for i, c in enumerate(plaintext):
+        ciphertext0[i] = Exponential(c, exponentMatrix[i])
+
+    ciphertext1 = linear_transformation(linearMatrix, ciphertext0)
+
+    ciphertext2 = [0]*8
+    for i, c in enumerate(ciphertext1):
+        ciphertext2[i] = Exponential(c, exponentMatrix[i])
+
+    ciphertext3 = linear_transformation(linearMatrix, ciphertext2)
+    ciphertext4 = [0]*8
+    for i, c in enumerate(ciphertext3):
+        ciphertext4[i] = Exponential(c, exponentMatrix[i])
+    return ciphertext4

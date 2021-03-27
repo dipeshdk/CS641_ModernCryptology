@@ -1,29 +1,19 @@
-import req_functions as utils
-import eaeae 
+import utils
 
 # this matrix will be changed after we find the matrix from the input output pairs 
-MATRIX_A = [[126, 32, 68, 126, 74, 76, 58, 39], 
-            [0, 85, 100, 91, 83, 99, 111, 122], 
-            [0, 0, 4, 29, 122, 69, 40, 108], 
-            [0, 0, 0, 20, 17, 0, 93, 68], 
-            [0, 0, 0, 0, 78, 94, 114, 78], 
-            [0, 0, 0, 0, 0, 85, 77, 2], 
-            [0, 0, 0, 0, 0, 0, 53, 62], 
-            [0, 0, 0, 0, 0, 0, 0, 50]]
+MATRIX_A = [[84, 114, 20, 127, 98, 31, 15, 90], [0, 70, 17, 20, 37, 51, 121, 14], [0, 0, 43, 26, 3, 28, 14, 81], [0, 0, 0, 12, 104, 32, 104, 25], [0, 0, 0, 0, 112, 100, 0, 10], [0, 0, 0, 0, 0, 11, 92, 68], [0, 0, 0, 0, 0, 0, 27, 31], [0, 0, 0, 0, 0, 0, 0, 38]]
 
-MATRIX_EXP = [88, 34, 20, 43, 26, 63, 102, 23]
-
-
+MATRIX_EXP = [20, 108, 37, 78, 88, 50, 23, 17]
 def decrypt_password(password):
     password_in_byte = utils.block_to_byte(password)
     op = ""
     
     for i in range(0,8):
         for j in range(0,128):
-            input = op  + utils.byte_str(j) + (14-len(op))*'f'
+            input = op  + utils.byte_to_char(j) + (14-len(op))*'f'
             
-            if ord(password_in_byte[i]) == eaeae.EAEAE(utils.block_to_byte(input), MATRIX_A, MATRIX_EXP)[i]:
-                op += utils.byte_str(j)
+            if ord(password_in_byte[i]) == utils.eaeae(utils.block_to_byte(input), MATRIX_A, MATRIX_EXP)[i]:
+                op += utils.byte_to_char(j)
                 break
     
     return op
